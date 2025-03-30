@@ -1,0 +1,649 @@
+local player = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local dashCooldownTime = 10
+local isCooldown = false
+local tweenInfo = TweenInfo.new(dashCooldownTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0)
+
+local function cleanup()
+    local button = player.PlayerGui.InGameUI.Bottom.Abilities:FindFirstChild("BrazilianZalaButton")
+    if button then button:Destroy() end
+end
+
+local function initializeAbility()
+    cleanup()
+
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    local animation1 = Instance.new("Animation")
+    animation1.AnimationId = "rbxassetid://18930210385"
+    local animationTrack1 = humanoid:LoadAnimation(animation1)
+
+    local animation2 = Instance.new("Animation")
+    animation2.AnimationId = "rbxassetid://99916870664377"
+    local animationTrack2 = humanoid:LoadAnimation(animation2)
+
+    local button = player.PlayerGui.InGameUI.Bottom.Abilities["1"]:Clone()
+
+    -- Create the sound
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://108981235887894"
+    sound.Parent = humanoidRootPart
+
+    local function triggerAbility()
+        if isCooldown then return end
+
+        -- Play the sound
+        sound:Play()
+
+        -- Play the second animation
+        animationTrack2:Play()
+        animationTrack2:AdjustSpeed(1)
+
+        local cooldownFrame = button:FindFirstChild("Cooldown")
+        local tween = TweenService:Create(cooldownFrame.UIGradient, tweenInfo, {Offset = Vector2.new(0, 1)})
+
+        isCooldown = true
+        cooldownFrame.UIGradient.Offset = Vector2.new(0, 0)
+
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(100000, 0, 100000)
+        bodyVelocity.Parent = humanoidRootPart
+
+        for i = 1, 2 do
+            bodyVelocity.Velocity = humanoidRootPart.CFrame.RightVector * (i % 2 == 0 and 30 or -60) + humanoidRootPart.CFrame.LookVector * 60
+            task.wait(0.5)
+        end
+
+        bodyVelocity.Velocity = humanoidRootPart.CFrame.LookVector * 60
+
+        -- Add VFX for the second animation
+        local vfx2 = game:GetObjects("rbxassetid://18596629655")[1]
+        for _, v in pairs(vfx2:GetDescendants()) do
+            if v:IsA("ParticleEmitter") then
+                v:Clone().Parent = humanoidRootPart
+            end
+        end
+
+        -- When the second animation stops, play the first animation and add VFX for the first animation
+        animationTrack2.Stopped:Connect(function()
+            animationTrack1:Play()
+            animationTrack1:AdjustSpeed(1)
+
+            -- Add VFX for the first animation
+            local vfx1 = game:GetObjects("rbxassetid://17152275946")[1]
+            for _, v in pairs(vfx1:GetDescendants()) do
+                if v:IsA("ParticleEmitter") then
+                    v:Clone().Parent = humanoidRootPart
+                end
+            end
+
+            -- Stop effects and cleanup after animation ends
+            animationTrack1.Stopped:Connect(function()
+                bodyVelocity:Destroy()
+
+                -- Disable the particle emitters for both animations
+                for _, v in pairs(humanoidRootPart:GetDescendants()) do
+                    if v:IsA("ParticleEmitter") then
+                        v.Enabled = false
+                    end
+                end
+
+                tween:Play()
+                tween.Completed:Connect(function()
+                    isCooldown = false
+                end)
+            end)
+        end)
+    end
+
+    button.Name = "BrazilianZalaButton"
+    button.Parent = player.PlayerGui.InGameUI.Bottom.Abilities
+    button.LayoutOrder = 5
+    button.Keybind.Text = "Z"
+    button.Timer.Text = "Brazilian Zala"
+    button.ActualTimer.Text = ""
+
+    button.Activated:Connect(triggerAbility)
+    game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Z then
+            triggerAbility()
+        end
+    end)
+end
+
+-- Ensure ability is initialized when character is added
+player.CharacterAdded:Connect(initializeAbility)
+
+-- Initialize ability when script runs
+initializeAbility()
+
+
+
+local player = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local cooldownTime = 7
+local abilityKey = Enum.KeyCode.B
+local buttonName = "DribblingChopButton"
+local abilityName = "Dribble Curve"
+local buttonPosition = 6
+
+local isCooldown = false
+local lastAbilityTime = 0
+local cooldownDuration = cooldownTime
+local tweenInfo = TweenInfo.new(cooldownTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0)
+
+local function initializeAbility()
+    local button = player.PlayerGui.InGameUI.Bottom.Abilities["1"]:Clone()
+
+    local function triggerAbility()
+        if isCooldown then
+            return
+        end
+
+        local character = player.Character or player.CharacterAdded:Wait()
+        if not character then return end
+
+        local humanoid = character:FindFirstChild("Humanoid")
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+        if not humanoid or not humanoidRootPart then
+            return
+        end
+
+        local currentTime = tick()
+        if currentTime - lastAbilityTime < cooldownDuration then
+            return
+        end
+
+        lastAbilityTime = currentTime
+        isCooldown = true
+
+        local animation1 = Instance.new("Animation")
+        animation1.AnimationId = "rbxassetid://124999361278741"
+        local animationTrack1 = humanoid:LoadAnimation(animation1)
+
+        local animation2 = Instance.new("Animation")
+        animation2.AnimationId = "rbxassetid://84377108321213"
+        local animationTrack2 = humanoid:LoadAnimation(animation2)
+
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://140605565762138"
+        sound.Parent = humanoidRootPart
+        sound.Pitch = 0.666
+        sound.Volume = 1.444
+
+        sound:Play()
+        local ballServiceRE = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("BallService").RE
+        ballServiceRE.Dribble:FireServer()
+
+        animationTrack1:Play()
+        animationTrack1:AdjustSpeed(0.9)
+
+        local bodyVelocity1 = Instance.new("BodyVelocity")
+        bodyVelocity1.Velocity = (humanoidRootPart.CFrame.LookVector + humanoidRootPart.CFrame.RightVector) * 50
+        bodyVelocity1.MaxForce = Vector3.new(100000, 0, 100000)
+        bodyVelocity1.Parent = humanoidRootPart
+
+        local vfx = game:GetObjects("rbxassetid://16408664901")[1]
+        local particleEmitters = {}
+        if vfx then
+            for _, v in pairs(vfx:GetDescendants()) do
+                if v:IsA("ParticleEmitter") then
+                    local emitterClone = v:Clone()
+                    emitterClone.Parent = humanoidRootPart
+                    table.insert(particleEmitters, emitterClone)
+                end
+            end
+        end
+
+        wait(animationTrack1.Length / 2)
+        bodyVelocity1.Velocity = (humanoidRootPart.CFrame.LookVector - humanoidRootPart.CFrame.RightVector) * 50
+
+        animationTrack1.Stopped:Connect(function()
+            bodyVelocity1:Destroy()
+            animationTrack2:Play()
+            animationTrack2:AdjustSpeed(6)
+            humanoidRootPart.Anchored = true
+            local adjustedDelayTime = animationTrack2.Length / 6.7 - 0.8
+
+            delay(adjustedDelayTime, function()
+                wait(0.15)
+                local animationId = "18668827116"
+                local animation = Instance.new("Animation")
+                animation.AnimationId = "rbxassetid://" .. animationId
+                local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
+                local animationTrack = animator:LoadAnimation(animation)
+                for _, track in pairs(animator:GetPlayingAnimationTracks()) do
+                    if track.Animation.AnimationId == animation.AnimationId then
+                        track:Stop()
+                    end
+                end
+                animationTrack.Priority = Enum.AnimationPriority.Action4
+                animationTrack:Play()
+                local sound = Instance.new("Sound")
+                sound.SoundId = "rbxassetid://87838758006658"
+                sound.Volume = 0.888
+                sound.Looped = false
+                sound.Parent = character
+                sound:Play()
+                task.wait(0.15)
+                local args = { [1] = 127, }
+                local ballService = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("BallService")
+                if ballService then
+                    ballService.RE.Shoot:FireServer(unpack(args))
+                else
+                    warn("BallService not found!")
+                    return
+                end
+                ballServiceRE.Dribble:FireServer()
+                task.wait(0.277)
+                local football = workspace:FindFirstChild("Football")
+                local hitbox = football and football:FindFirstChild("Hitbox")
+                if not hitbox then
+                    warn("No Football Hitbox found. Aborting.")
+                    return
+                end
+                local speed = 100.888
+                local maxForce = Vector3.new(1000, 0, 1000)
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.MaxForce = maxForce
+                bodyVelocity.Parent = hitbox
+                local checkInterval = 0.5777
+                local stopCheck = false
+                task.spawn(function()
+                    while not stopCheck do
+                        task.wait(checkInterval)
+                        if not hitbox or not hitbox.Parent or not hitbox:IsDescendantOf(workspace) then
+                            warn("Hitbox hidden or deleted! Stopping BodyVelocity.")
+                            bodyVelocity:Destroy()
+                            stopCheck = true
+                        end
+                    end
+                end)
+                local startTime = tick()
+                local curveStrength = 0
+                local curveIncrement = 0.0777
+                local currentCurve = 0
+                local connection
+                connection = RunService.Heartbeat:Connect(function()
+                    if tick() - startTime > checkInterval then
+                        stopCheck = true
+                        bodyVelocity:Destroy()
+                        connection:Disconnect()
+                        return
+                    end
+                    local lookDirection = humanoidRootPart.CFrame.LookVector
+                    currentCurve = math.min(currentCurve + curveIncrement, curveStrength)
+                    local curveOffset = lookDirection * currentCurve
+                    bodyVelocity.Velocity = (lookDirection * speed) + curveOffset
+                end)
+                local ball = workspace:FindFirstChild("Football")
+                if not ball or not ball:IsA("BasePart") then
+                    return
+                end
+                local attachment0 = Instance.new("Attachment", ball)
+                local attachment1 = Instance.new("Attachment", ball)
+                attachment0.Position = Vector3.new(0, 0.5, 0)
+                attachment1.Position = Vector3.new(0, -0.5, 0)
+                local trail = Instance.new("Trail")
+                trail.Parent = ball
+                trail.Brightness = 25
+                trail.Texture = "rbxassetid://10365550877"
+                trail.Attachment0 = attachment0
+                trail.Attachment1 = attachment1
+                trail.Lifetime = 2
+                trail.MaxLength = 150
+                trail.MinLength = 0
+                trail.Enabled = true
+                trail.TextureMode = Enum.TextureMode.Stretch
+                trail.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 255)),
+                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 255))
+                })
+                trail.WidthScale = NumberSequence.new({
+                    NumberSequenceKeypoint.new(0, 3),
+                    NumberSequenceKeypoint.new(0.2, 10),
+                    NumberSequenceKeypoint.new(0.5, 30),
+                    NumberSequenceKeypoint.new(0.8, 50),
+                    NumberSequenceKeypoint.new(1, 75)
+                })
+                trail.Transparency = NumberSequence.new({
+                    NumberSequenceKeypoint.new(0, 0),
+                    NumberSequenceKeypoint.new(1, 1)
+                })
+                task.wait(0.888)
+                trail:Destroy()
+                attachment0:Destroy()
+                attachment1:Destroy()
+                for _, emitter in pairs(particleEmitters) do
+                    emitter:Destroy()
+                end
+            end)
+
+            animationTrack2.Stopped:Connect(function()
+                humanoidRootPart.Anchored = false
+            end)
+        end)
+
+        local cooldownFrame = button:FindFirstChild("Cooldown")
+        local tween = TweenService:Create(cooldownFrame.UIGradient, tweenInfo, { Offset = Vector2.new(0, 1) })
+        cooldownFrame.UIGradient.Offset = Vector2.new(0, 0)
+        tween:Play()
+        tween.Completed:Connect(function()
+            isCooldown = false
+            print("Cooldown finished.")
+        end)
+        print("Cooldown started.")
+    end
+
+    button.Name = buttonName
+    button.Parent = player.PlayerGui.InGameUI.Bottom.Abilities
+    button.LayoutOrder = buttonPosition
+    button.Keybind.Text = abilityKey.Name
+    button.Timer.Text = abilityName
+    button.ActualTimer.Text = ""
+
+    button.Activated:Connect(triggerAbility)
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == abilityKey then
+            triggerAbility()
+        end
+    end)
+end
+
+initializeAbility()
+
+
+
+local player = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local cooldownTime = 7  -- Cooldown time (in seconds)
+local abilityKey = Enum.KeyCode.V  -- Key to activate ability
+local buttonName = "FlowingPassButton"  -- Name for the ability button
+local abilityName = "Flowing Pass"  -- Name of the ability
+local buttonPosition = 4  -- Position in the layout (can be adjusted)
+
+local isCooldown = false
+local tweenInfo = TweenInfo.new(cooldownTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0)
+local lastAbilityTime = 0
+local cooldownDuration = 10
+
+local buttonCreated = false -- Flag to track if the button has been created
+
+-- Function to initialize the ability button and setup
+local function initializeAbility()
+    if buttonCreated then return end -- If the button has been created, exit
+
+    local button = player.PlayerGui.InGameUI.Bottom.Abilities["1"]:Clone()
+
+    -- Trigger ability logic  
+    local function triggerAbility()
+        if isCooldown then return end
+
+        local currentTime = tick()
+        if currentTime - lastAbilityTime < cooldownDuration then
+            return
+        end
+
+        lastAbilityTime = currentTime
+
+        local character = player.Character or player.CharacterAdded:Wait()
+
+        local humanoid = character:WaitForChild("Humanoid")
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+        local animation1 = Instance.new("Animation")
+        animation1.AnimationId = "rbxassetid://99916870664377"
+        local animationTrack1 = humanoid:LoadAnimation(animation1)
+
+        local animation2 = Instance.new("Animation")
+        animation2.AnimationId = "rbxassetid://84377108321213"
+        local animationTrack2 = humanoid:LoadAnimation(animation2)
+
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://140605565762138"
+        sound.Parent = humanoidRootPart
+        sound.Pitch = 0.666
+        sound.Volume = 1.444
+
+        local shootSound = Instance.new("Sound")
+        shootSound.SoundId = "rbxassetid://87838758006658"
+        shootSound.Volume = 0.888
+        shootSound.Looped = false
+        shootSound.Parent = character
+
+        local vfx = game:GetObjects("rbxassetid://16772139862")[1]
+
+        sound:Stop()
+        sound:Play()
+
+        local B = ReplicatedStorage.Packages.Knit.Services.BallService.RE.Dribble
+        B:FireServer()
+
+        animationTrack1:Play()
+        animationTrack1:AdjustSpeed(0.9)
+
+        local bodyVelocity1 = Instance.new("BodyVelocity")
+        bodyVelocity1.Velocity = (-humanoidRootPart.CFrame.LookVector - humanoidRootPart.CFrame.RightVector) * 50
+        bodyVelocity1.MaxForce = Vector3.new(100000, 0, 100000)
+        bodyVelocity1.Parent = humanoidRootPart
+
+        -- Enable VFX aura  
+        for _, v in pairs(vfx:GetDescendants()) do
+            if v:IsA("ParticleEmitter") then
+                local emitterClone = v:Clone()
+                emitterClone.Parent = humanoidRootPart
+                emitterClone.Enabled = true
+            end
+        end
+
+        wait(animationTrack1.Length / 2)
+        bodyVelocity1.Velocity = (-humanoidRootPart.CFrame.LookVector + humanoidRootPart.CFrame.RightVector) * 50
+
+        animationTrack1.Stopped:Connect(function()
+            bodyVelocity1:Destroy()
+            animationTrack2:Play()
+            animationTrack2:AdjustSpeed(6)
+            humanoidRootPart.Anchored = true
+
+            local adjustedDelayTime = animationTrack2.Length / 6.7 - 0.8
+
+            delay(adjustedDelayTime, function()
+                wait(0.15)
+                local ball = character:FindFirstChild("Football")
+                if ball then
+                    local animationId = "18668827116"
+                    local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
+                    local animation = Instance.new("Animation")
+                    animation.AnimationId = "rbxassetid://" .. animationId
+                    local animationTrack = animator:LoadAnimation(animation)
+
+                    for _, track in pairs(animator:GetPlayingAnimationTracks()) do
+                        if track.Animation.AnimationId == animation.AnimationId then
+                            track:Stop()
+                        end
+                    end
+
+                    animationTrack.Priority = Enum.AnimationPriority.Action4
+
+                    shootSound:Stop()
+                    shootSound:Play()
+
+                    task.wait(0.15)
+
+                    local args = {127}
+                    local ballService = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("BallService")
+                    if ballService then
+                        ballService.RE.Shoot:FireServer(unpack(args))
+                    else
+                        warn("BallService not found!")
+                        return
+                    end
+
+                    task.wait(0.2888)
+
+                    local Players = game:GetService("Players")
+                    local camera = workspace.CurrentCamera
+                    local football = workspace:FindFirstChild("Football")
+                    if not football then return end
+                    local speed = 300.888
+                    local maxForce = Vector3.new(888, 888, 888)
+                    local duration = 3.888
+
+                    local function getNearestTeammate()
+                        local closestPlayer = nil
+                        local closestDistance = math.huge -- Initialize with a very large number
+
+                        local team = player.Team -- Get the player's team
+                        local otherPlayers = game.Players:GetPlayers()
+
+                        for _, otherPlayer in ipairs(otherPlayers) do
+                            if otherPlayer ~= player and otherPlayer.Team == team and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                                local otherRootPart = otherPlayer.Character.HumanoidRootPart
+                                local distance = (football.Position - otherRootPart.Position).Magnitude
+
+                                if distance < closestDistance then
+                                    closestDistance = distance
+                                    closestPlayer = otherPlayer
+                                end
+                            end
+                        end
+
+                        if closestPlayer then
+                            local targetRootPart = closestPlayer.Character.HumanoidRootPart
+                            local bodyVelocity = Instance.new("BodyVelocity")
+                            bodyVelocity.MaxForce = maxForce
+                            bodyVelocity.Parent = football
+
+                            local startTime = tick()
+                            while tick() - startTime < duration do
+                                if targetRootPart and football then
+                                    bodyVelocity.Velocity = (targetRootPart.Position - football.Position).Unit * speed
+                                else
+                                    break
+                                end
+                                task.wait(0.00888)
+                            end
+                            bodyVelocity:Destroy()
+                        end
+                    end
+
+                    local function moveFootball()
+                        getNearestTeammate()
+                    end
+
+                    moveFootball()
+
+                    local attachment0 = Instance.new("Attachment", football)
+                    local attachment1 = Instance.new("Attachment", football)
+                    attachment0.Position = Vector3.new(0, 0.5, 0)
+                    attachment1.Position = Vector3.new(0, -0.5, 0)
+
+                    local trail = Instance.new("Trail")
+                    trail.Parent = football
+                    trail.Brightness = 25
+                    trail.Texture = "rbxassetid://10365550877"
+                    trail.Attachment0 = attachment0
+                    trail.Attachment1 = attachment1
+                    trail.Lifetime = 2
+                    trail.MaxLength = 150
+                    trail.MinLength = 0
+                    trail.Enabled = true
+                    trail.TextureMode = Enum.TextureMode.Stretch
+
+                    trail.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 255)),
+                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 255))
+                    })
+
+                    trail.WidthScale = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 3),
+                        NumberSequenceKeypoint.new(0.2, 10),
+                        NumberSequenceKeypoint.new(0.5, 30),
+                        NumberSequenceKeypoint.new(0.8, 50),
+                        NumberSequenceKeypoint.new(1, 75)
+                    })
+
+                    trail.Transparency = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 0),
+                        NumberSequenceKeypoint.new(1, 1)
+                    })
+
+                    task.wait(5) -- Reduce wait time
+
+                    if trail then trail:Destroy() end
+                    if attachment0 then attachment0:Destroy() end
+                    if attachment1 then attachment1:Destroy() end
+                end
+            end)
+
+            animationTrack2.Stopped:Connect(function()
+                humanoidRootPart.Anchored = false
+                -- Disable VFX aura  
+                for _, v in pairs(humanoidRootPart:GetDescendants()) do
+                    if v:IsA("ParticleEmitter") then
+                        v.Enabled = false
+                    end
+                end
+            end)
+        end)
+
+        local cooldownFrame = button:FindFirstChild("Cooldown")
+        local tween = TweenService:Create(cooldownFrame.UIGradient, tweenInfo, { Offset = Vector2.new(0, 1) })
+
+        isCooldown = true
+        cooldownFrame.UIGradient.Offset = Vector2.new(0, 0)
+
+        tween:Play()
+        tween.Completed:Connect(function()
+            isCooldown = false
+            print("Cooldown finished.")
+        end)
+
+        print("Cooldown started.")
+    end
+
+    -- Customize the button  
+    button.Name = buttonName
+    button.Parent = player.PlayerGui.InGameUI.Bottom.Abilities
+    button.LayoutOrder = buttonPosition
+    button.Keybind.Text = abilityKey.Name
+    button.Timer.Text = abilityName
+    button.ActualTimer.Text = ""
+
+    -- Connect ability activation events  
+    button.Activated:Connect(triggerAbility)
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == abilityKey then
+            triggerAbility()
+        end
+    end)
+
+    buttonCreated = true -- Set the flag to true after creating the button
+end
+
+-- Ensure the ability button is initialized when the player joins the game
+local function onPlayerAdded(addedPlayer)
+    if addedPlayer == player then
+        initializeAbility()
+    end
+end
+
+-- Connect the PlayerAdded event to initialize the button
+game.Players.PlayerAdded:Connect(onPlayerAdded)
+
+-- Initialize the ability button if the player is already in the game
+if player then
+    initializeAbility()
+ends
