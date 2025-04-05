@@ -1,0 +1,20 @@
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Itadori Style By Zuyi",
+    Text = "Black Flash!",
+    Button1 = "Thank U Zuyi",
+    Button2 = "✅",
+    Duration = 3
+})
+
+local player = game:GetService("Players").LocalPlayer
+local st = player.PlayerGui.Style.BG.StyleTxt
+local Slot = player.PlayerGui.Style.BG.Slots.ScrollingFrame.Slot1.Text
+local des = player.PlayerGui.Style.BG.Desc
+
+while wait() do
+    st.Text = "Itadori Yuji"
+    st.TextColor3 = Color3.fromRGB(0, 0, 0)
+    Slot.Text = "Itadori Yuji"
+    Slot.TextColor3 = Color3.fromRGB(0, 0, 0)
+    des.Text = "One Of The Strongest Characters In Jujutsu Kaisen - Made By P2K And PresidentZuyi!"
+end
