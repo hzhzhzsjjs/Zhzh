@@ -1,0 +1,226 @@
+local player = game.Players.LocalPlayer
+local camera = game.Workspace.CurrentCamera
+local runService = game:GetService("RunService")
+
+local duration = 6 -- Orbit duration
+local focusDuration = 3 -- Face cam duration
+local backCamDuration = 4 -- Back cam duration
+local frontCamDuration = 4 -- Front cam duration
+local radius = 15
+local height = 20
+local speed = 360 / duration
+
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local head = character:WaitForChild("Head")
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Load animation
+local animation = Instance.new("Animation")
+animation.AnimationId = "rbxassetid://86284444307518"
+local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
+local animationTrack = animator:LoadAnimation(animation)
+animationTrack.Priority = Enum.AnimationPriority.Action
+animationTrack:Play()
+
+-- Create Sound
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://76455746835202"
+sound.Volume = 10
+sound.Parent = workspace
+sound:Play()
+
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "SAESubtitles"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- SAE spam during orbit
+local subtitleCount = 6
+local spacing = 0.07
+local labelWidth = 0.06
+local totalWidth = subtitleCount * labelWidth + (subtitleCount - 1) * spacing
+local startX = 0.5 - (totalWidth / 2)
+local textDisplayDuration = 2 -- Duration (in seconds) before text disappears
+
+for i = 0, subtitleCount - 1 do
+	task.delay(i * 0.03, function()
+		local label = Instance.new("TextLabel")
+		label.Text = "SAE"
+		label.TextColor3 = Color3.fromRGB(255, 80, 120)
+		label.Font = Enum.Font.FredokaOne
+		label.TextScaled = true
+		label.BackgroundTransparency = 1
+		label.Size = UDim2.new(labelWidth, 0, 0.08, 0)
+		label.Position = UDim2.new(startX + (i * (labelWidth + spacing)), 0, 0.77, 0)
+		label.Parent = gui
+
+		-- Fade out and destroy the text label after the display duration
+		task.spawn(function()
+			task.wait(textDisplayDuration) -- Wait for the display duration
+			for j = 1, 10 do
+				label.TextTransparency = j * 0.1 -- Gradually increase transparency
+				task.wait(0.05)
+			end
+			label:Destroy() -- Remove the label from the GUI
+		end)
+	end)
+end
+
+-- Camera orbit
+camera.CameraType = Enum.CameraType.Scriptable
+local startTime = tick()
+
+-- Add VFX for the first camera part
+local vfx = game:GetObjects("rbxassetid://10088609715")[1]
+for _, v in pairs(vfx:GetDescendants()) do
+	if v:IsA("ParticleEmitter") then
+		v:Clone().Parent = rootPart
+	end
+end
+
+local connection
+connection = runService.RenderStepped:Connect(function()
+	local elapsed = tick() - startTime
+	if elapsed > duration then
+		connection:Disconnect()
+		gui:ClearAllChildren()
+		animationTrack:Stop()
+
+		-- Remove VFX after the first camera part
+		for _, descendant in pairs(rootPart:GetDescendants()) do
+			if descendant:IsA("ParticleEmitter") then
+				descendant:Destroy()
+			end
+		end
+
+		-- Smoke from mouth
+		local attachment = Instance.new("Attachment", head)
+		attachment.Position = Vector3.new(0, -0.25, -0.6)
+
+		local smoke = Instance.new("ParticleEmitter")
+		smoke.Texture = "rbxassetid://258128463"
+		smoke.Rate = 25
+		smoke.Lifetime = NumberRange.new(0.7, 1.2)
+		smoke.Speed = NumberRange.new(1, 2)
+		smoke.Rotation = NumberRange.new(-180, 180)
+		smoke.RotSpeed = NumberRange.new(-90, 90)
+		smoke.Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.5),
+			NumberSequenceKeypoint.new(1, 1.5),
+		})
+		smoke.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.2),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		smoke.EmissionDirection = Enum.NormalId.Front
+		smoke.Enabled = true
+		smoke.Parent = attachment
+
+		-- Breathing sound
+		local breathSound = Instance.new("Sound")
+		breathSound.SoundId = "rbxassetid://6282917777"
+		breathSound.Volume = 30
+		breathSound.Parent = head
+		breathSound:Play()
+
+		-- Face camera
+		local faceStart = tick()
+		local faceConnection
+		faceConnection = runService.RenderStepped:Connect(function()
+			local faceElapsed = tick() - faceStart
+			if faceElapsed > focusDuration then
+				faceConnection:Disconnect()
+
+				-- Clear GUI before back camera phase
+				gui:ClearAllChildren()
+
+				-- Back camera
+				local backStart = tick()
+
+				-- Add sound for the back and front camera phase
+				local backSound = Instance.new("Sound")
+				backSound.SoundId = "rbxassetid://96237356445774"
+				backSound.Volume = 10
+				backSound.Parent = workspace
+				backSound:Play()
+
+				local backConnection
+				backConnection = runService.RenderStepped:Connect(function()
+					local backElapsed = tick() - backStart
+					if backElapsed > backCamDuration then
+						backConnection:Disconnect()
+
+						-- Switch to front camera for the last 4 seconds
+						local frontStart = tick()
+						local frontConnection
+						frontConnection = runService.RenderStepped:Connect(function()
+							local frontElapsed = tick() - frontStart
+							if frontElapsed > frontCamDuration then
+								frontConnection:Disconnect()
+								camera.CameraType = Enum.CameraType.Custom
+								backSound:Destroy() -- Stop and remove the back sound
+								breathSound:Destroy()
+								attachment:Destroy()
+								return
+							end
+							local frontOffset = head.CFrame.LookVector * 4 -- Closer front view
+							camera.CFrame = CFrame.new(head.Position + frontOffset, head.Position)
+						end)
+
+						return
+					end
+					local backOffset = -head.CFrame.LookVector * 7 -- Back camera distance
+					camera.CFrame = CFrame.new(head.Position + backOffset, head.Position)
+				end)
+
+				-- Subtitle logic for 8 seconds
+				local subtitles = {
+					"What Have You Been Doing Here, Rin.",
+					"After All This Time",
+					"You Are Still, HALF BAKED"
+				}
+				local subtitleDuration = 8 / #subtitles -- Duration for each subtitle
+				for index, text in ipairs(subtitles) do
+					task.delay((index - 1) * subtitleDuration, function()
+						local label = Instance.new("TextLabel")
+						label.Text = text
+						label.TextColor3 = Color3.new(1, 1, 1)
+						label.Font = Enum.Font.FredokaOne
+						label.TextScaled = true
+						label.BackgroundTransparency = 1
+						label.Size = UDim2.new(0.8, 0, 0.1, 0)
+						label.Position = UDim2.new(0.1, 0, 0.8, 0)
+						label.TextTransparency = 1
+						label.Parent = gui
+
+						-- Fade in and out transition for each subtitle
+						task.spawn(function()
+							for i = 1, 20 do
+								label.TextTransparency = 1 - (i * 0.05)
+								task.wait(0.02)
+							end
+							task.wait(subtitleDuration - 1) -- Keep the subtitle visible briefly
+							for i = 1, 20 do
+								label.TextTransparency = i * 0.05
+								task.wait(0.02)
+							end
+							label:Destroy()
+						end)
+					end)
+				end
+
+				return
+			end
+			local faceOffset = head.CFrame.LookVector * 2.5
+			camera.CFrame = CFrame.new(head.Position + faceOffset, head.Position)
+		end)
+
+		return
+	end
+
+	local angle = math.rad((elapsed * speed) % 360)
+	local offset = Vector3.new(math.cos(angle) * radius, height, math.sin(angle) * radius)
+	camera.CFrame = CFrame.new(rootPart.Position + offset, rootPart.Position)
+end)
