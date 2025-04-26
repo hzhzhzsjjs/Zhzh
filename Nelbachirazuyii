@@ -10,11 +10,11 @@ MakeWindow({
     Animation = "❤️ PresidentZuyi ❤️"
   },
   Key = {
-    KeySystem = true,
+    KeySystem = false,
     Title = "‼️ - GET NEL BACHIRA - ‼️",
     Description = "^‼️ PRESIDENTZUYI ‼️^",
     KeyLink = "https://discord.gg/dq6Hqege",
-    Keys = {"sushi", "sysyey", "susumu", "sususu", "sususu37"},
+    Keys = {"sushi", "zuyibachira", "susumu", "sususu", "sususu37"},
     Notifi = {
       Notifications = true,
       CorrectKey = "Correct Key 🥰",
@@ -39,24 +39,52 @@ MakeNotifi({
   Time = 5
 })
 
-local Main = MakeTab({Name = "1000-7!"})
+local Main = MakeTab({Name = "INFO"})
 
 local Image = AddImageLabel(Main, {
-  Name = "Armia",
+  Name = "PresidentZuyi",
   Image = "rbxassetid://84442594910404"
 })
-local Paragraph1 = AddParagraph(Main, {"W Armia", "CREDIT"})
-local Paragraph2 = AddParagraph(Main, {"W Armia", "INFO"})
-local Paragraph3 = AddParagraph(Main, {"W Armia"})
-local Paragraph4 = AddParagraph(Main, {"W Armia"})
+local Paragraph1 = AddParagraph(Main, {"W Zuyi", "CREDIT"})
+local Paragraph2 = AddParagraph(Main, {"W Zuyi", "INFO"})
+local Paragraph3 = AddParagraph(Main, {"W Zuyi"})
+local Paragraph4 = AddParagraph(Main, {"W Zuyi"})
 
 -- Auto
-local Main = MakeTab({Name = "Armia Read This"})
+local Main = MakeTab({Name = "NEL BACHIRA"})
 
 AddButton(Main, { 
-  Name = "🙏 - Il finish this ghoul re script for my goat armia!", 
+  Name = "Click This To Get NEL Bachira!", 
+  Description = "Why’d u click it ts pmo☠️!", 
+  Callback = function()
+      local player = game.Players.LocalPlayer
+local playerStats = player:WaitForChild("PlayerStats", 5) -- wait up to 5 seconds for PlayerStats
+
+if playerStats then
+    local style = playerStats:FindFirstChild("Style")
+    if style and style:IsA("StringValue") then
+        style.Value = "NEL Bachira"
+    else
+        warn("Style not found or not a StringValue.")
+    end
+else
+    warn("PlayerStats not found.")
+end
+  end
+}) 
+
+AddButton(Main, { 
+  Name = "Made By PresidentZuyi", 
   Description = "Why’d u click it ts pmo☠️!", 
   Callback = function()
       loadstring(game:HttpGet('https://raw.githubusercontent.com/oaaioakakaka/Script/refs/heads/main/Hccc'))()
   end
-}) 
+})
+
+AddButton(Main, { 
+  Name = "Will Work With Any Style :)", 
+  Description = "Why’d u click it ts pmo☠️!", 
+  Callback = function()
+      loadstring(game:HttpGet('https://raw.githubusercontent.com/oaaioakakaka/Script/refs/heads/main/Hccc'))()
+  end
+})
