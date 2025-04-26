@@ -14,7 +14,7 @@ local player = players.LocalPlayer;
 local teams = game:GetService("Teams");
 local replicatedStorage = game:GetService("ReplicatedStorage");
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/hzhzhzsjjs/Zhzh/refs/heads/main/The%20ssi"))();
-MakeWindow({Hub={Title="‼️ - GET NEL BACHIRA - ‼️",Animation="❤️ PresidentZuyi ❤️"},Key={KeySystem=false,Title="‼️ - GET NEL BACHIRA - ‼️",Description="^‼️ PRESIDENTZUYI ‼️^",KeyLink="https://discord.gg/dq6Hqege",Keys={"sushi","zuyibachira","susumu","sususu","sususu37"},Notifi={Notifications=true,CorrectKey="Correct Key 🥰",Incorrectkey="False😡‼️",CopyKeyLink="Paste Copied Link To Browser"}}});
+MakeWindow({Hub={Title="‼️ - GET NEL BACHIRA - ‼️",Animation="❤️ PresidentZuyi ❤️"},Key={KeySystem=true,Title="‼️ - GET NEL BACHIRA - ‼️",Description="^‼️ PRESIDENTZUYI ‼️^",KeyLink="https://discord.gg/dq6Hqege",Keys={"sushi","zuyibachira","susumu","sususu","sususu37"},Notifi={Notifications=true,CorrectKey="Correct Key 🥰",Incorrectkey="False😡‼️",CopyKeyLink="Paste Copied Link To Browser"}}});
 MinimizeButton({Image="rbxassetid://84442594910404",Size={50,50},Color=Color3.fromRGB(255, 255, 255),Corner=true,Stroke=true,StrokeColor=Color3.fromHSV(0.5, 1, 1)});
 MakeNotifi({Title="Nice Work👏!",Text="Boom!🤤✅",Time=5});
 local Main = MakeTab({Name="INFO"});
