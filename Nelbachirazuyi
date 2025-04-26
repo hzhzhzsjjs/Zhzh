@@ -10,7 +10,7 @@ MakeWindow({
     Animation = "❤️ PresidentZuyi ❤️"
   },
   Key = {
-    KeySystem = false,
+    KeySystem = true,
     Title = "‼️ - GET NEL BACHIRA - ‼️",
     Description = "^‼️ PRESIDENTZUYI ‼️^",
     KeyLink = "https://discord.gg/dq6Hqege",
