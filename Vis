@@ -1,0 +1,211 @@
+local player = game.Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Debris = game:GetService("Debris")
+
+-- Load Knit and StatesController for speed boost
+local Knit = require(game:GetService("ReplicatedStorage").Packages.Knit)
+local StatesController = Knit.GetController("StatesController")
+
+-- **Cleanup Function**: Removes previous ability buttons and text GUIs to prevent duplicates
+local function cleanup()
+    for _, buttonName in ipairs({
+        "LightspeedButton"
+    }) do
+        local button = player.PlayerGui.InGameUI.Bottom.Abilities:FindFirstChild(buttonName)
+        if button then
+            button:Destroy()
+        end
+    end
+    if player.PlayerGui:FindFirstChild("AbilityTextGui") then
+        player.PlayerGui.AbilityTextGui:Destroy()
+    end
+end
+
+-- **Camera Shake Function**: Adds a visual shake effect, works on both PC and mobile
+local function shakeCamera(intensity, duration)
+    local camera = workspace.CurrentCamera
+    local originalCFrame = camera.CFrame
+    local elapsed = 0
+    local heartbeat = RunService.Heartbeat
+    local connection
+    connection = heartbeat:Connect(function(dt)
+        elapsed = elapsed + dt
+        if elapsed < duration then
+            local shakeOffset = CFrame.new(
+                math.random(-intensity, intensity)/100,
+                math.random(-intensity, intensity)/100,
+                0
+            )
+            camera.CFrame = originalCFrame * shakeOffset
+        else
+            camera.CFrame = originalCFrame
+            connection:Disconnect()
+        end
+    end)
+end
+
+-- **Display Ability Text**: Shows ability names on-screen with scaling for all platforms
+local function displayAbilityText(text, duration)
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "AbilityTextGui"
+    screenGui.Parent = player.PlayerGui
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Name = "AbilityTextLabel"
+    textLabel.Text = text
+    textLabel.Size = UDim2.new(0.5, 0, 0.1, 0) -- Relative size scales with screen
+    textLabel.Position = UDim2.new(0.25, 0, 0.05, 0)
+    textLabel.TextScaled = true -- Ensures text fits on all screen sizes
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.Font = Enum.Font.GothamBlack
+    textLabel.TextStrokeTransparency = 0.3
+    textLabel.Parent = screenGui
+    Debris:AddItem(screenGui, duration)
+end
+
+-- **Initialize Abilities**: Sets up all abilities and UI elements
+local function initializeAbility()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    -- Load animations and sounds
+    local animation1 = Instance.new("Animation")
+    animation1.AnimationId = "rbxassetid://76950247429784"
+    local animationTrack1 = humanoid:LoadAnimation(animation1)
+
+    local sound1 = Instance.new("Sound")
+    sound1.SoundId = "rbxassetid://821439273"
+    sound1.Volume = 5
+    sound1.Parent = humanoidRootPart
+
+    local visualEffect = Instance.new("ParticleEmitter")
+    visualEffect.Texture = "rbxassetid://107877955127835"
+    visualEffect.Color = ColorSequence.new(Color3.new(1, 0, 0))
+    visualEffect.Lifetime = NumberRange.new(0.5, 1)
+    visualEffect.Rate = 100
+    visualEffect.Speed = NumberRange.new(20, 30)
+    visualEffect.Size = NumberSequence.new(2, 3)
+    visualEffect.Transparency = NumberSequence.new(0, 0.5)
+    visualEffect.Enabled = false
+    visualEffect.Parent = humanoidRootPart
+
+    local coolEffect = Instance.new("ParticleEmitter")
+    coolEffect.Texture = "rbxassetid://107877955127835"
+    coolEffect.Color = ColorSequence.new(Color3.new(0, 1, 1))
+    coolEffect.Lifetime = NumberRange.new(0.5, 1.5)
+    coolEffect.Rate = 50
+    coolEffect.Speed = NumberRange.new(15, 25)
+    coolEffect.Size = NumberSequence.new(3, 4)
+    coolEffect.Transparency = NumberSequence.new(0, 0.7)
+    coolEffect.Enabled = false
+    coolEffect.Parent = humanoidRootPart
+
+    -- Load aura VFX
+    local vfx = game:GetObjects("rbxassetid://15218491196")[1]
+    local particleEmitters = {}
+    for _, v in pairs(vfx:GetDescendants()) do
+        if v:IsA("ParticleEmitter") then
+            for i = 1, 3 do -- Duplicate each particle emitter 3 times
+                local emitterClone = v:Clone()
+                table.insert(particleEmitters, emitterClone)
+            end
+        end
+    end
+
+    --- **Ability 1: Lightspeed** ---
+    local function triggerLightspeed()
+        animationTrack1:Play()
+        animationTrack1:AdjustSpeed(0.7)
+        local zigzagDuration = 0.09
+        local zigzagDistance = 6
+        visualEffect.Enabled = true
+        coolEffect.Enabled = true
+
+        -- Enable aura VFX
+        for _, emitter in pairs(particleEmitters) do
+            emitter.Enabled = true
+            emitter.Parent = humanoidRootPart
+        end
+
+        local segments = 10
+        local function playZigzagTweens(count)
+            if count > segments then
+                visualEffect.Enabled = false
+                coolEffect.Enabled = false
+
+                -- Disable aura VFX
+                for _, emitter in pairs(particleEmitters) do
+                    emitter.Enabled = false
+                end
+
+                return
+            end
+            local currentPos = humanoidRootPart.Position
+            local direction = (count % 2 == 1) and 1 or -1
+            local forwardVector = humanoidRootPart.CFrame.LookVector
+            local rightVector = humanoidRootPart.CFrame.RightVector
+            local targetPosition = currentPos + (forwardVector * zigzagDistance + direction * rightVector * zigzagDistance)
+            local targetCFrame = CFrame.new(targetPosition, targetPosition + forwardVector)
+            local tweenInfo = TweenInfo.new(zigzagDuration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+            local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
+            local s = sound1:Clone()
+            s.Parent = humanoidRootPart
+            s:Play()
+            Debris:AddItem(s, s.TimeLength)
+            tween:Play()
+            tween.Completed:Connect(function()
+                playZigzagTweens(count + 1)
+            end)
+        end
+        playZigzagTweens(1)
+        displayAbilityText("", 2)
+    end
+
+    -- **GUI Button Creation**: Sets up buttons for all abilities
+    local bottomAbilities = player.PlayerGui.InGameUI.Bottom.Abilities
+
+    local btnLightspeed = bottomAbilities["1"]:Clone()
+    btnLightspeed.Name = "SpeedNi"
+    btnLightspeed.Parent = bottomAbilities
+    btnLightspeed.LayoutOrder = -4
+    btnLightspeed.Keybind.Text = "N"
+    btnLightspeed.Timer.Text = "Vision Net"
+    btnLightspeed.ActualTimer.Text = ""
+    btnLightspeed.Cooldown:Destroy()
+
+    -- **Hide Keybind Texts on Mobile**: Improves UI clarity on touch devices
+    if UserInputService.TouchEnabled then
+        for _, btn in pairs(bottomAbilities:GetChildren()) do
+            if btn:IsA("TextButton") and btn:FindFirstChild("Keybind") then
+                btn.Keybind.Visible = false
+            end
+        end
+    end
+
+    -- **Connect Button Activations**: Allows abilities to be triggered via GUI clicks
+    btnLightspeed.Activated:Connect(triggerLightspeed)
+
+    -- **Keyboard Input Handling**: Enables abilities on PC via keyboard
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Y then
+            triggerLightspeed()
+        end
+    end)
+end
+
+-- **Connect Character Added Event**: Reinitializes abilities on respawn
+player.CharacterAdded:Connect(function()
+    cleanup()
+    initializeAbility()
+end)
+
+-- Initial cleanup and setup
+cleanup()
+if player.Character then
+    initializeAbility()
+end
