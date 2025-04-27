@@ -1,0 +1,221 @@
+local player = game.Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Debris = game:GetService("Debris")
+
+-- Load Knit and StatesController for any future functionality
+local Knit = require(game:GetService("ReplicatedStorage").Packages.Knit)
+local StatesController = Knit.GetController("StatesController")
+
+-- **Cleanup Function**: Removes previous ability buttons and text GUIs to prevent duplicates
+local function cleanup()
+    for _, buttonName in ipairs({
+        "LightspeedButton"
+    }) do
+        local button = player.PlayerGui.InGameUI.Bottom.Abilities:FindFirstChild(buttonName)
+        if button then
+            button:Destroy()
+        end
+    end
+    if player.PlayerGui:FindFirstChild("AbilityTextGui") then
+        player.PlayerGui.AbilityTextGui:Destroy()
+    end
+end
+
+-- **New Ability Logic Function**: Replaces the old Lightspeed function
+local function triggerNewAbility()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    local camera = workspace.CurrentCamera
+
+    -- Backup original CameraType
+    local originalCameraType = camera.CameraType
+
+    -- Load and clone VFX to player
+    local vfx = game:GetObjects("rbxassetid://17248599084")[1]
+    local playerVFX = {}
+
+    if vfx then
+        for _, v in pairs(vfx:GetDescendants()) do
+            if v:IsA("ParticleEmitter") then
+                local clone = v:Clone()
+                clone.Parent = humanoidRootPart
+                table.insert(playerVFX, clone)
+            end
+        end
+    else
+        warn("Failed to load player VFX.")
+    end
+
+    -- Load and clone VFX to Football
+    local football = workspace:FindFirstChild("Football")
+    local vfxModel = game:GetObjects("rbxassetid://8903469227")[1]
+    local footballVFX = {}
+
+    if vfxModel and football then
+        local attachPart = football:IsA("BasePart") and football or football:FindFirstChildWhichIsA("BasePart", true)
+        if attachPart then
+            for _, obj in pairs(vfxModel:GetDescendants()) do
+                if obj:IsA("ParticleEmitter") then
+                    local clone = obj:Clone()
+                    clone.Parent = attachPart
+                    table.insert(footballVFX, clone)
+                end
+            end
+        else
+            warn("No BasePart found in Football to attach the VFX.")
+        end
+    else
+        warn("Football or football VFX failed to load.")
+    end
+
+    -- Play Sound
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://133363702291477"
+    sound.Volume = 1
+    sound.Parent = humanoidRootPart
+    sound:Play()
+
+    -- Play Animation
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://102808395912805"
+    local animTrack = humanoid:LoadAnimation(anim)
+    animTrack:Play()
+
+    -- Wait 2 seconds, then change camera
+    task.wait(2)
+
+    if character:FindFirstChild("Head") then
+        camera.CameraType = Enum.CameraType.Scriptable
+        
+        -- Adjust camera to face the player
+        local headPos = character.Head.Position
+        local headLook = character.Head.CFrame.LookVector
+        local camPos = headPos + headLook * 4 + Vector3.new(0, 1.5, 0) -- Camera 4 studs in front of the player, and slightly above
+
+        -- Camera faces the player, showing both player and environment
+        camera.CFrame = CFrame.new(camPos, headPos) -- Camera at camPos looking at player's head
+    end
+
+    -- Create ScreenGui for text
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "ZoneLockDownGui"
+    gui.Parent = player.PlayerGui
+
+    -- First Text
+    local label1 = Instance.new("TextLabel")
+    label1.Size = UDim2.new(0.6, 0, 0.1, 0)
+    label1.Position = UDim2.new(0.5, 0, 0.75, 0)
+    label1.AnchorPoint = Vector2.new(0.5, 1)
+    label1.BackgroundTransparency = 1
+    label1.Text = "This Place Is Currently"
+    label1.TextColor3 = Color3.new(1, 1, 1)
+    label1.TextStrokeColor3 = Color3.new(0, 0, 0)
+    label1.TextStrokeTransparency = 0
+    label1.Font = Enum.Font.GothamBold
+    label1.TextScaled = true
+    label1.Parent = gui
+
+    -- Wait 1 second
+    task.wait(1)
+
+    -- Second Text
+    local label2 = Instance.new("TextLabel")
+    label2.Size = UDim2.new(0.6, 0, 0.1, 0)
+    label2.Position = UDim2.new(0.5, 0, 0.85, 0)
+    label2.AnchorPoint = Vector2.new(0.5, 1)
+    label2.BackgroundTransparency = 1
+    label2.Text = "Under Zone Lock Down!"
+    label2.TextColor3 = Color3.new(1, 1, 1)
+    label2.TextStrokeColor3 = Color3.new(0, 0, 0)
+    label2.TextStrokeTransparency = 0
+    label2.Font = Enum.Font.GothamBold
+    label2.TextScaled = true
+    label2.Parent = gui
+
+    -- Wait until 5 seconds total
+    task.wait(2)
+
+    -- Clean up: Destroy all VFX, Sound, Animation, GUI, Reset Camera
+    for _, v in ipairs(playerVFX) do
+        if v and v.Parent then
+            v:Destroy()
+        end
+    end
+
+    for _, v in ipairs(footballVFX) do
+        if v and v.Parent then
+            v:Destroy()
+        end
+    end
+
+    if sound then
+        sound:Stop()
+        sound:Destroy()
+    end
+
+    if animTrack then
+        animTrack:Stop()
+        animTrack:Destroy()
+    end
+
+    if gui then
+        gui:Destroy()
+    end
+
+    camera.CameraType = originalCameraType
+end
+
+-- **Initialize Abilities**: Sets up all abilities and UI elements
+local function initializeAbility()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    -- **GUI Button Creation**: Sets up buttons for the abilities
+    local bottomAbilities = player.PlayerGui.InGameUI.Bottom.Abilities
+
+    local btnAbility = bottomAbilities["-3"]:Clone()
+    btnAbility.Name = "sonelockdown"
+    btnAbility.Parent = bottomAbilities
+    btnAbility.LayoutOrder = -3
+    btnAbility.Keybind.Text = "Y"
+    btnAbility.Timer.Text = "Zone Lockdown"
+    btnAbility.ActualTimer.Text = ""
+    btnAbility.Cooldown:Destroy()
+
+    -- **Hide Keybind Texts on Mobile**: Improves UI clarity on touch devices
+    if UserInputService.TouchEnabled then
+        for _, btn in pairs(bottomAbilities:GetChildren()) do
+            if btn:IsA("TextButton") and btn:FindFirstChild("Keybind") then
+                btn.Keybind.Visible = false
+            end
+        end
+    end
+
+    -- **Connect Button Activations**: Allows abilities to be triggered via GUI clicks
+    btnAbility.Activated:Connect(triggerNewAbility)
+
+    -- **Keyboard Input Handling**: Enables abilities on PC via keyboard
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Y then
+            triggerNewAbility()
+        end
+    end)
+end
+
+-- **Connect Character Added Event**: Reinitializes abilities on respawn
+player.CharacterAdded:Connect(function()
+    cleanup()
+    initializeAbility()
+end)
+
+-- Initial cleanup and setup
+cleanup()
+if player.Character then
+    initializeAbility()
+end
