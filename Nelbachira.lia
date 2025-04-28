@@ -1,0 +1,119 @@
+--- I Dont Care If U Use This Lol ;)
+
+local Library = "https://raw.githubusercontent.com/Panda-Repositories/PandaKS_Libraries/refs/heads/main/library/LuaLib/ROBLOX/PandaSVALLib.lua"
+local PandaAuth = loadstring(game:HttpGet(Library))()
+
+-- Preload Fluent UI but don't create windows yet
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+-- Setup Services
+local players = game:GetService("Players")
+local player = players.LocalPlayer
+local teams = game:GetService("Teams")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Function to create the main UI after successful authentication
+local function loadMainUI()
+    local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/hzhzhzsjjs/Zhzh/refs/heads/main/The%20ssi"))()
+
+    MakeWindow({
+      Hub = {
+        Title = "🔥👀 - GET NEL BACHIRA - 🔥👀",
+        Animation = "NEL BACHIRA!!!"
+      },
+      Key = {
+        KeySystem = false,
+        Title = "🔥👀 - GET NEL BACHIRA - 🔥👀",
+        Description = "^ CURRENTLY WORKING!!! ^",
+        KeyLink = "not needed",
+        Keys = {"zbjssiisjdhd", "isopods", "huausushsj", "sshshhsshu", "sususu37"},
+        Notifi = {
+          Notifications = true,
+          CorrectKey = "Correct Key 🥽",
+          Incorrectkey = "False😡‼️",
+          CopyKeyLink = "Paste Copied Link To Browser"
+        }
+      }
+    })
+
+    MinimizeButton({
+      Image = "rbxassetid://84442594910404",
+      Size = {50, 50},
+      Color = Color3.fromRGB(255, 255, 255),
+      Corner = true,
+      Stroke = true,
+      StrokeColor = Color3.fromHSV(0.5, 1, 1)
+    })
+
+    MakeNotifi({
+      Title = "Nice Work👏!",
+      Text = "Boom!🤤✅",
+      Time = 5
+    })
+
+    local InfoTab = MakeTab({Name = "INFO"})
+
+    AddImageLabel(InfoTab, {
+      Name = "PresidentZuyi",
+      Image = "rbxassetid://84442594910404"
+    })
+    AddParagraph(InfoTab, {"W Zuyi", "CREDIT"})
+    AddParagraph(InfoTab, {"W Zuyi", "INFO"})
+    AddParagraph(InfoTab, {"W Zuyi"})
+    AddParagraph(InfoTab, {"W Zuyi"})
+
+    local MainTab = MakeTab({Name = "NEL BACHIRA"})
+
+    AddButton(MainTab, { 
+      Name = "Click This To Get NEL Bachira!", 
+      Description = "Why'd u click it ts pmo☠️!", 
+      Callback = function()
+          local playerStats = player:WaitForChild("PlayerStats", 5)
+          if playerStats then
+              local style = playerStats:FindFirstChild("Style")
+              if style and style:IsA("StringValue") then
+                  style.Value = "NEL Bachira"
+              else
+                  warn("Style not found or not a StringValue.")
+              end
+          else
+              warn("PlayerStats not found.")
+          end
+      end
+    })
+
+    AddButton(MainTab, { 
+      Name = "Made By PresidentZuyi", 
+      Description = "Why'd u click it ts pmo☠️!", 
+      Callback = function()
+          loadstring(game:HttpGet('https://raw.githubusercontent.com/oaaioakakaka/Script/refs/heads/main/Hccc'))()
+      end
+    })
+
+    AddButton(MainTab, { 
+      Name = "Will Work With Any Style :)", 
+      Description = "Why'd u click it ts pmo☠️!", 
+      Callback = function()
+          loadstring(game:HttpGet('https://raw.githubusercontent.com/oaaioakakaka/Script/refs/heads/main/Hccc'))()
+      end
+    })
+end
+
+-- Initialize Pelinda SVAL Authentication
+PandaAuth:Initialize({ 
+    Service = "sigmazuyi",
+    API_Key = "5018ec0b7cee466d9b652e63f8190ca8cc243e358df485af5d8ebde33cf767e8",
+    DisplayName = "PresidentZuyi Scripts",
+    IsDebug = false,
+    Allow_BlacklistUsers = false,
+    GUIVersion = true,
+    EnableWebhook = true,
+    Webhook_URL = "https://discord.com/api/webhooks/1366468355501985933/r3Nto5YJWx_negNCL0ltBMy1-bwBgq-86O2smFyG6oTv9tyOB2__RY_hcFt3tcXAQdf6",
+    Authenticated = function()
+        print("[Pelinda] Key authenticated successfully! Access granted.")
+        loadMainUI()
+    end, 
+    NotAuthenticated = function()
+        print("[Pelinda] Authentication failed. Access denied.")
+    end
+})
