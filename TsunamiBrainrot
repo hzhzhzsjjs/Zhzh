@@ -1,0 +1,62 @@
+local players = game:GetService("Players")
+local player = players.LocalPlayer
+local teams = game:GetService("Teams")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/PresidentZuyi/S/refs/heads/main/C"))()
+
+MakeWindow({
+  Hub = {
+    Title = "💎 - Unlimited Lucky Spins - 💎",
+    Animation = "❤️ President Zuyi ❤️"
+  },
+  Key = {
+    KeySystem = true,
+    Title = "💎 - Escape Tsunami - 💎",
+    Description = "^ Very OP Script ^",
+    KeyLink = "https://www.robiox.com.py/users/283763242726/profile",
+    Keys = {"tenakidrop", "hizuyi", "zuyi", "7", "FREE_10283383837"},
+    Notifi = {
+      Notifications = true,
+      CorrectKey = "Correct Key 🥰",
+      Incorrectkey = "False😡‼️",
+      CopyKeyLink = "Paste Link To Browser!"
+    }
+  }
+})
+
+MinimizeButton({
+  Image = "rbxassetid://84442594910404",
+  Size = {50, 50},
+  Color = Color3.fromRGB(255, 255, 255),
+  Corner = true,
+  Stroke = true,
+  StrokeColor = Color3.fromHSV(0.5, 1, 1)  -- Hue: 180° for cyan
+})
+
+MakeNotifi({
+  Title = "Nice Work👏!",
+  Text = "Boom!🤤✅",
+  Time = 5
+})
+
+local Main = MakeTab({Name = "Auto Bump"})
+
+local Image = AddImageLabel(Main, {
+  Name = "PresidentZuyi💕",
+  Image = "rbxassetid://84442594910404"
+})
+local Paragraph1 = AddParagraph(Main, {"⚡️ This Is My Official Hub That Gets New Daily Features And This Script Has All My Recent Projects On It ⚡️", "CREDIT"})
+local Paragraph2 = AddParagraph(Main, {"More Games Getting Supported Soon", "INFO"})
+local Paragraph3 = AddParagraph(Main, {"Only Blue Lock Rivals Supported"})
+local Paragraph4 = AddParagraph(Main, {"PresidentZuyi Is The Owner Of This Script"})
+
+-- Auto
+local Main = MakeTab({Name = "Auto Farm"})
+
+AddButton(Main, { 
+  Name = "🔥 - Get Loki Style", 
+  Description = "Why’d u click it ts pmo☠️!", 
+  Callback = function()
+      loadstring(game:HttpGet('https://raw.githubusercontent.com/oaaioakakaka/Script/refs/heads/main/Hccc'))()
+  end
+})
